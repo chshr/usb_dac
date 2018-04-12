@@ -64,7 +64,7 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 typedef struct {
-	int *array;
+	uint16_t *array;
 	size_t used;
 	size_t size;
 } Array;
@@ -82,14 +82,17 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arr);
+void interpol(int p1, int p2, uint16_t t, Array* resArr);
+
 void initArray(Array *a, size_t initialSize);
 void insert2Array(Array *a, int element);
 void freeArray(Array *a);
+
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
 ArrHolder Arrs;
-
+int cyclesToWait, startCycle;
 /* USER CODE END 0 */
 
 /**
@@ -126,10 +129,13 @@ int main(void)
   MX_DAC_Init();
   /* USER CODE BEGIN 2 */
 
+  // Setting processor cycle-based timer
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->LAR = 0xC5ACCE55;	// Lock Access Register
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk; // enable the counter
   DWT->CYCCNT = 0; // reset the counter
+  cyclesToWait = (SystemCoreClock/1000000L)*20; // wait 20 us
+
 
   HAL_DAC_Start(&hdac,DAC_CHANNEL_1);
   HAL_DAC_Start(&hdac,DAC_CHANNEL_2);
@@ -145,7 +151,7 @@ int main(void)
 	Arrs.y = &yarr;
 	Arrs.t = &tarr;
 
-	uint16_t p = 0;
+	int p = 0;
 
 
 
@@ -155,8 +161,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_Delay(200);
-	  HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
+	  startCycle = DWT->CYCCNT;
+
+//	  HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
 
 	  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R, xarr.array[p]);
 	  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_2,DAC_ALIGN_12B_R, yarr.array[p]);
@@ -166,6 +173,9 @@ int main(void)
 	  } else {
 		  p++;
 	  }
+
+	  do {
+	  }while(DWT->CYCCNT - startCycle < cyclesToWait);
 
   /* USER CODE END WHILE */
 
@@ -275,6 +285,22 @@ void freeArray(Array *a)
 	a->used = a->size = 0;
 }
 
+void interpol(int p1, int p2, uint16_t t, Array* resArr)
+// Makes t points between p1 and p2
+{
+	int pdiff, newpoint, i;
+	double d;
+
+	pdiff = p2 - p1;
+	d = pdiff / (double)(t + 1);
+
+	for (i = 1; i<(t+1); ++i)
+	{
+		newpoint = p1 + d * i;
+		insert2Array(resArr, newpoint);
+	}
+}
+
 void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs)
 {
 	uint8_t i = 0;
@@ -292,8 +318,19 @@ void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs)
 		y = (uint16_t) ((*(Buf+i+2) << 8) | (*(Buf+i+3)));
 		t = (uint16_t) ((*(Buf+i+4) << 8) | (*(Buf+i+5)));
 		i += 6;
+
+		if (xarr->used > 0)
+		{
+			interpol(xarr->array[xarr->used-1], x, t, xarr);
+		}
 		insert2Array(xarr, x);
+
+		if (yarr->used > 0)
+		{
+			interpol(yarr->array[yarr->used-1], y, t, yarr);
+		}
 		insert2Array(yarr, y);
+
 		insert2Array(tarr, t);
 	}
 
