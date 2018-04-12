@@ -160,7 +160,7 @@ int main(void)
 
 	  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R, xarr.array[p]);
 	  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_2,DAC_ALIGN_12B_R, yarr.array[p]);
-	  if (p>=xarr.used)
+	  if (p>=(int)xarr.used-1)
 	  {
 		  p = 0;
 	  } else {
@@ -253,6 +253,7 @@ void SystemClock_Config(void)
 void initArray(Array *a, size_t initialSize)
 {
 	a->array = (uint16_t*)malloc(initialSize * sizeof(uint16_t));
+	a->array[0] = 0;
 	a->used = 0;
 	a->size = initialSize;
 }
@@ -300,7 +301,6 @@ void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs)
 
 void receivedUsbCallback(uint8_t* Buf, uint32_t *Len)
 {
-	HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R, *Len);
 	parseString(Buf, Len, Arrs);
 	HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
 }
