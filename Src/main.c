@@ -62,14 +62,22 @@
 
 
 /* USER CODE BEGIN PV */
+#define INTERMSG_BYTES 4
+
 /* Private variables ---------------------------------------------------------*/
-typedef struct {
+typedef struct Array{
 	uint16_t *array;
 	size_t used;
 	size_t size;
 } Array;
 
-typedef struct {
+typedef struct Array8{
+	uint8_t *array;
+	size_t used;
+	size_t size;
+} Array8;
+
+typedef struct ArrHolder{
 	Array* x;
 	Array* y;
 	Array* t;
@@ -81,18 +89,21 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arr);
+void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arr, uint8_t *interMsg, int *interMsgSize);
 void interpol(int p1, int p2, uint16_t t, Array* resArr);
-
+\
 void initArray(Array *a, size_t initialSize);
 void insert2Array(Array *a, int element);
 void freeArray(Array *a);
 
+void USB_DEVICE_MasterHardReset(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
 ArrHolder Arrs;
+uint8_t interMsgSave[INTERMSG_BYTES];
 int cyclesToWait, startCycle;
+int interMsgSizeGlob = 0;
 /* USER CODE END 0 */
 
 /**
@@ -125,6 +136,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART3_UART_Init();
+//  USB_DEVICE_MasterHardReset();
   MX_USB_DEVICE_Init();
   MX_DAC_Init();
   /* USER CODE BEGIN 2 */
@@ -285,6 +297,31 @@ void freeArray(Array *a)
 	a->used = a->size = 0;
 }
 
+void initArray8(Array8 *a, size_t initialSize)
+{
+	a->array = (uint8_t*)malloc(initialSize * sizeof(uint8_t));
+	a->array[0] = 0;
+	a->used = 0;
+	a->size = initialSize;
+}
+
+void insert2Array8(Array8 *a, int element)
+{
+	if (a->used == a->size)
+	{
+		a->size += 8;
+		a->array = (uint8_t*) realloc(a->array, a->size * sizeof(uint8_t));
+	}
+	a->array[a->used++] = element;
+}
+
+void freeArray8(Array8 *a)
+{
+	free(a->array);
+	a->array = NULL;
+	a->used = a->size = 0;
+}
+
 void interpol(int p1, int p2, uint16_t t, Array* resArr)
 // Makes t points between p1 and p2
 {
@@ -301,9 +338,10 @@ void interpol(int p1, int p2, uint16_t t, Array* resArr)
 	}
 }
 
-void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs)
+void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs, uint8_t *interMsg, int *interMsgSize)
 {
-	uint8_t i = 0;
+	uint8_t i, j;
+	i = j = 0;
 	uint8_t send_res;
 	uint16_t x = 0;
 	uint16_t y = 0;
@@ -311,6 +349,33 @@ void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs)
 	Array* xarr = Arrs.x;
 	Array* yarr = Arrs.y;
 	Array* tarr = Arrs.t;
+	Array8 tempBuf;
+	int tempBufFlag = 0;
+
+	// work only with information with even number of bytes
+	// odd number of bytes probably means \n in the end
+	if (*Len % 2 == 1)
+	{
+		(*Len)--;
+	}
+
+	if (*interMsgSize > 0)
+	{
+		*Len += *interMsgSize;
+		initArray8(&tempBuf, *Len);
+		tempBufFlag = 1;
+
+		for (j=0; j<*interMsgSize; ++j)
+		{
+			insert2Array8(&tempBuf, *(interMsg+j));
+		}
+
+		for (j=0; j<(*Len - *interMsgSize); ++j)
+		{
+			insert2Array8(&tempBuf, *(Buf+j));
+		}
+		Buf = tempBuf.array;
+	}
 
 	while ((*Len - i) / 6 > 0)
 	{
@@ -334,12 +399,38 @@ void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs)
 		insert2Array(tarr, t);
 	}
 
+	*interMsgSize = *Len - i;
+
+	while ((*Len - i) > 0)
+	{
+		*interMsg++ = *(Buf+i++);
+	}
+
+	if (tempBufFlag)
+		freeArray8(&tempBuf);
+
 }
 
+// called from function CDC_Receive_FS in file usbd_cdc_if.c
 void receivedUsbCallback(uint8_t* Buf, uint32_t *Len)
 {
-	parseString(Buf, Len, Arrs);
+	parseString(Buf, Len, Arrs, &interMsgSave, &interMsgSizeGlob);
 	HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
+}
+
+/*pull down the USB RP pin to let think of master that device have been
+ *disconnected and force new device identification
+ *when calling MX_USB_DEVICE_Init() */
+void USB_DEVICE_MasterHardReset(void)
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Pin = GPIO_PIN_9;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(GPIOA,GPIO_PIN_9,0);
+    HAL_Delay(1000);
 }
 
 /* USER CODE END 4 */
