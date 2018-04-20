@@ -81,6 +81,7 @@ typedef struct ArrHolder{
 	Array* x;
 	Array* y;
 	Array* t;
+	char* eraseFlag;
 } ArrHolder;
 /* USER CODE END PV */
 
@@ -90,8 +91,8 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arr, uint8_t *interMsg, int *interMsgSize);
-void interpol(int p1, int p2, uint16_t t, Array* resArr);
-\
+void interpolInsert2Arr(int p1, int p2, uint16_t t, Array* resArr);
+
 void initArray(Array *a, size_t initialSize);
 void insert2Array(Array *a, int element);
 void freeArray(Array *a);
@@ -155,17 +156,30 @@ int main(void)
   HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R, 2048);
   HAL_DAC_SetValue(&hdac,DAC_CHANNEL_2,DAC_ALIGN_12B_R, 2048);
 
-	Array xarr, yarr, tarr;
-	initArray(&xarr, 64);
-	initArray(&yarr, 64);
-	initArray(&tarr, 64);
-	Arrs.x = &xarr;
-	Arrs.y = &yarr;
-	Arrs.t = &tarr;
+  Array xarr, yarr, tarr;
+  initArray(&xarr, 1024);
+  initArray(&yarr, 1024);
+  initArray(&tarr, 1024);
+  *(xarr.array) = 0;
+  *(yarr.array) = 0;
+  *(tarr.array) = 0;
+  Arrs.x = &xarr;
+  Arrs.y = &yarr;
+  Arrs.t = &tarr;
+  *(Arrs.eraseFlag) = 0;
 
-	int p = 0;
+  uint16_t t = 0;
+  uint16_t xcur = 0;
+  uint16_t ycur = 0;
+  uint16_t tcur = 0;
+  uint16_t p = 0;
+  uint16_t x = 0;
+  uint16_t xprev = 0;
+  uint16_t y = 0;
+  uint16_t yprev = 0;
 
-
+  double xStepDiff = 0;
+  double yStepDiff = 0;
 
   /* USER CODE END 2 */
 
@@ -175,16 +189,60 @@ int main(void)
   {
 	  startCycle = DWT->CYCCNT;
 
-//	  HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
+//// To be used with pre-made arrays of points
+//	  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R, xarr.array[p]);
+//	  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_2,DAC_ALIGN_12B_R, yarr.array[p]);
+//	  if (p>=(int)xarr.used-1)
+//	  {
+//		  p = 0;
+//	  } else {
+//		  p++;
+//	  }
 
-	  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R, xarr.array[p]);
-	  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_2,DAC_ALIGN_12B_R, yarr.array[p]);
-	  if (p>=(int)xarr.used-1)
+	  // To be used with new interpolation Array calculated for every point
+	  if (tcur == 0)
 	  {
-		  p = 0;
-	  } else {
-		  p++;
+		  if (xarr.used > 1)
+		  {
+			  xprev = x;
+			  yprev = y;
+		  }
+
+		  x = xarr.array[p];
+		  xcur = xprev;
+		  y = yarr.array[p];
+		  ycur = yprev;
+		  t = tarr.array[p];
+
+		  if (xprev > 0)
+		  {
+			  xStepDiff = (x - xprev) / (double)(t + 1);
+			  yStepDiff = (y - yprev) / (double)(t + 1);
+		  }
+
+	  } else
+	  {
+		  xcur = x + xStepDiff * tcur;
+		  ycur = y + yStepDiff * tcur;
 	  }
+
+	  if (tcur == t)
+	  {
+		  tcur = 0;
+		  if (p>=xarr.used-1)
+		  {
+			  p = 0;
+		  } else if (xarr.used > 0)
+		  {
+			  p++;
+		  }
+	  } else
+	  {
+		  tcur++;
+	  }
+
+	  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R, xcur);
+	  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_2,DAC_ALIGN_12B_R, ycur);
 
 	  do {
 	  }while(DWT->CYCCNT - startCycle < cyclesToWait);
@@ -322,8 +380,8 @@ void freeArray8(Array8 *a)
 	a->used = a->size = 0;
 }
 
-void interpol(int p1, int p2, uint16_t t, Array* resArr)
-// Makes t points between p1 and p2
+void interpolInsert2Arr(int p1, int p2, uint16_t t, Array* resArr)
+// Makes t points between p1 and p2 and inserts to the Array resArr
 {
 	int pdiff, newpoint, i;
 	double d;
@@ -352,6 +410,17 @@ void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs, uint8_t *interMsg,
 	Array8 tempBuf;
 	int tempBufFlag = 0;
 
+	if (*(Arrs.eraseFlag))
+	{
+		freeArray(xarr);
+		freeArray(yarr);
+		freeArray(tarr);
+		initArray(xarr, 64);
+		initArray(yarr, 64);
+		initArray(tarr, 64);
+		*(Arrs.eraseFlag) = 0;
+	}
+
 	// work only with information with even number of bytes
 	// odd number of bytes probably means \n in the end
 	if (*Len % 2 == 1)
@@ -377,6 +446,7 @@ void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs, uint8_t *interMsg,
 		Buf = tempBuf.array;
 	}
 
+	// parse the data
 	while ((*Len - i) / 6 > 0)
 	{
 		x = (uint16_t) ((*(Buf+i) << 8) | (*(Buf+i+1)));
@@ -384,22 +454,33 @@ void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs, uint8_t *interMsg,
 		t = (uint16_t) ((*(Buf+i+4) << 8) | (*(Buf+i+5)));
 		i += 6;
 
-		if (xarr->used > 0)
-		{
-			interpol(xarr->array[xarr->used-1], x, t, xarr);
-		}
+//		if (xarr->used > 0)
+//		{
+//			interpol(xarr->array[xarr->used-1], x, t, xarr);
+//		}
 		insert2Array(xarr, x);
 
-		if (yarr->used > 0)
-		{
-			interpol(yarr->array[yarr->used-1], y, t, yarr);
-		}
+//		if (yarr->used > 0)
+//		{
+//			interpol(yarr->array[yarr->used-1], y, t, yarr);
+//		}
 		insert2Array(yarr, y);
 
 		insert2Array(tarr, t);
 	}
 
 	*interMsgSize = *Len - i;
+
+	// check if bytes that left are command
+	if (*(Buf+i) == 0xEE)
+	{
+		if (*(Buf+i+1) == 0xEE)
+		{
+			// erase all data upon receiving the next message
+			*(Arrs.eraseFlag) = 1;
+			*interMsgSize = 0;
+		}
+	}
 
 	while ((*Len - i) > 0)
 	{
