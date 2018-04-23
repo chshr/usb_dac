@@ -222,8 +222,8 @@ int main(void)
 
 	  } else
 	  {
-		  xcur = x + xStepDiff * tcur;
-		  ycur = y + yStepDiff * tcur;
+		  xcur = xprev + xStepDiff * tcur;
+		  ycur = yprev + yStepDiff * tcur;
 	  }
 
 	  if (tcur == t)

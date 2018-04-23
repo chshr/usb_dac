@@ -6929,7 +6929,7 @@ LOAD c:/ac6/systemworkbench/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.15
                 0x00000905       0x20 c:/ac6/systemworkbench/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.15.0.201708311556/tools/compiler/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv5/hard/crtn.o
 OUTPUT(usb_dac.elf elf32-littlearm)
 
-.debug_info     0x00000000    0x22057
+.debug_info     0x00000000    0x22056
  .debug_info    0x00000000     0x12f3 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.o
  .debug_info    0x000012f3     0x19be Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.o
  .debug_info    0x00002cb1     0x12f6 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dac.o
@@ -6947,16 +6947,16 @@ OUTPUT(usb_dac.elf elf32-littlearm)
  .debug_info    0x000133e7      0xfe5 Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.o
  .debug_info    0x000143cc     0x11f6 Src/dac.o
  .debug_info    0x000155c2      0xe2e Src/gpio.o
- .debug_info    0x000163f0     0x2ae3 Src/main.o
- .debug_info    0x00018ed3      0xd17 Src/stm32f7xx_hal_msp.o
- .debug_info    0x00019bea      0xe54 Src/stm32f7xx_it.o
- .debug_info    0x0001aa3e      0xf19 Src/system_stm32f7xx.o
- .debug_info    0x0001b957     0x12a4 Src/usart.o
- .debug_info    0x0001cbfb      0xe9d Src/usb_device.o
- .debug_info    0x0001da98     0x10de Src/usbd_cdc_if.o
- .debug_info    0x0001eb76     0x26ab Src/usbd_conf.o
- .debug_info    0x00021221      0xdcf Src/usbd_desc.o
- .debug_info    0x00021ff0       0x67 startup/startup_stm32f767xx.o
+ .debug_info    0x000163f0     0x2ae2 Src/main.o
+ .debug_info    0x00018ed2      0xd17 Src/stm32f7xx_hal_msp.o
+ .debug_info    0x00019be9      0xe54 Src/stm32f7xx_it.o
+ .debug_info    0x0001aa3d      0xf19 Src/system_stm32f7xx.o
+ .debug_info    0x0001b956     0x12a4 Src/usart.o
+ .debug_info    0x0001cbfa      0xe9d Src/usb_device.o
+ .debug_info    0x0001da97     0x10de Src/usbd_cdc_if.o
+ .debug_info    0x0001eb75     0x26ab Src/usbd_conf.o
+ .debug_info    0x00021220      0xdcf Src/usbd_desc.o
+ .debug_info    0x00021fef       0x67 startup/startup_stm32f767xx.o
 
 .debug_abbrev   0x00000000     0x46ae
  .debug_abbrev  0x00000000      0x2e3 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.o
@@ -6987,7 +6987,7 @@ OUTPUT(usb_dac.elf elf32-littlearm)
  .debug_abbrev  0x00004444      0x258 Src/usbd_desc.o
  .debug_abbrev  0x0000469c       0x12 startup/startup_stm32f767xx.o
 
-.debug_loc      0x00000000     0x8937
+.debug_loc      0x00000000     0x893b
  .debug_loc     0x00000000      0x108 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.o
  .debug_loc     0x00000108      0x5c0 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.o
  .debug_loc     0x000006c8      0x73d Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dac.o
@@ -7004,12 +7004,12 @@ OUTPUT(usb_dac.elf elf32-littlearm)
  .debug_loc     0x00006113      0xbba Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.o
  .debug_loc     0x00006ccd      0x23c Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.o
  .debug_loc     0x00006f09       0x5b Src/dac.o
- .debug_loc     0x00006f64      0x7a7 Src/main.o
- .debug_loc     0x0000770b      0x13e Src/system_stm32f7xx.o
- .debug_loc     0x00007849       0x5b Src/usart.o
- .debug_loc     0x000078a4      0x129 Src/usbd_cdc_if.o
- .debug_loc     0x000079cd      0xc92 Src/usbd_conf.o
- .debug_loc     0x0000865f      0x2d8 Src/usbd_desc.o
+ .debug_loc     0x00006f64      0x7ab Src/main.o
+ .debug_loc     0x0000770f      0x13e Src/system_stm32f7xx.o
+ .debug_loc     0x0000784d       0x5b Src/usart.o
+ .debug_loc     0x000078a8      0x129 Src/usbd_cdc_if.o
+ .debug_loc     0x000079d1      0xc92 Src/usbd_conf.o
+ .debug_loc     0x00008663      0x2d8 Src/usbd_desc.o
 
 .debug_aranges  0x00000000      0xe08
  .debug_aranges
@@ -7204,7 +7204,7 @@ OUTPUT(usb_dac.elf elf32-littlearm)
  .debug_macro   0x0002a193      0x3f2 Src/usbd_conf.o
  .debug_macro   0x0002a585      0x426 Src/usbd_desc.o
 
-.debug_line     0x00000000    0x107c1
+.debug_line     0x00000000    0x107c0
  .debug_line    0x00000000      0xa21 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.o
  .debug_line    0x00000a21      0x9fa Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.o
  .debug_line    0x0000141b      0xa5b Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dac.o
@@ -7222,16 +7222,16 @@ OUTPUT(usb_dac.elf elf32-littlearm)
  .debug_line    0x00009b2c      0x95b Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.o
  .debug_line    0x0000a487      0x81d Src/dac.o
  .debug_line    0x0000aca4      0x80c Src/gpio.o
- .debug_line    0x0000b4b0      0xb17 Src/main.o
- .debug_line    0x0000bfc7      0x7e3 Src/stm32f7xx_hal_msp.o
- .debug_line    0x0000c7aa      0x7fb Src/stm32f7xx_it.o
- .debug_line    0x0000cfa5      0x80d Src/system_stm32f7xx.o
- .debug_line    0x0000d7b2      0x821 Src/usart.o
- .debug_line    0x0000dfd3      0x94c Src/usb_device.o
- .debug_line    0x0000e91f      0x97c Src/usbd_cdc_if.o
- .debug_line    0x0000f29b      0xb51 Src/usbd_conf.o
- .debug_line    0x0000fdec      0x956 Src/usbd_desc.o
- .debug_line    0x00010742       0x7f startup/startup_stm32f767xx.o
+ .debug_line    0x0000b4b0      0xb16 Src/main.o
+ .debug_line    0x0000bfc6      0x7e3 Src/stm32f7xx_hal_msp.o
+ .debug_line    0x0000c7a9      0x7fb Src/stm32f7xx_it.o
+ .debug_line    0x0000cfa4      0x80d Src/system_stm32f7xx.o
+ .debug_line    0x0000d7b1      0x821 Src/usart.o
+ .debug_line    0x0000dfd2      0x94c Src/usb_device.o
+ .debug_line    0x0000e91e      0x97c Src/usbd_cdc_if.o
+ .debug_line    0x0000f29a      0xb51 Src/usbd_conf.o
+ .debug_line    0x0000fdeb      0x956 Src/usbd_desc.o
+ .debug_line    0x00010741       0x7f startup/startup_stm32f767xx.o
 
 .debug_str      0x00000000    0xed146
  .debug_str     0x00000000    0xe85ed Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.o
