@@ -206,6 +206,9 @@ int main(void)
 		  {
 			  xprev = x;
 			  yprev = y;
+		  } else {
+			  xprev = xarr.array[0];
+			  yprev = yarr.array[0];
 		  }
 
 		  x = xarr.array[p];
@@ -229,7 +232,7 @@ int main(void)
 	  if (tcur == t)
 	  {
 		  tcur = 0;
-		  if (p>=xarr.used-1)
+		  if ((xarr.used==0) | (p>=xarr.used-1))
 		  {
 			  p = 0;
 		  } else if (xarr.used > 0)
@@ -398,6 +401,7 @@ void interpolInsert2Arr(int p1, int p2, uint16_t t, Array* resArr)
 
 void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs, uint8_t *interMsg, int *interMsgSize)
 {
+
 	uint8_t i, j;
 	i = j = 0;
 	uint8_t send_res;
@@ -410,7 +414,7 @@ void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs, uint8_t *interMsg,
 	Array8 tempBuf;
 	int tempBufFlag = 0;
 
-	if (*(Arrs.eraseFlag))
+	void eraseAllArrs(void)
 	{
 		freeArray(xarr);
 		freeArray(yarr);
@@ -419,6 +423,11 @@ void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs, uint8_t *interMsg,
 		initArray(yarr, 64);
 		initArray(tarr, 64);
 		*(Arrs.eraseFlag) = 0;
+	}
+
+	if (*(Arrs.eraseFlag))
+	{
+		eraseAllArrs();
 	}
 
 	// work only with information with even number of bytes
@@ -478,6 +487,11 @@ void parseString(uint8_t *Buf, uint32_t *Len, ArrHolder Arrs, uint8_t *interMsg,
 		{
 			// erase all data upon receiving the next message
 			*(Arrs.eraseFlag) = 1;
+			*interMsgSize = 0;
+		} else if (*(Buf+i+1) == 0x01)
+		{
+			// erase all data immediately
+			eraseAllArrs();
 			*interMsgSize = 0;
 		}
 	}
